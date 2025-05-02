@@ -1,4 +1,4 @@
-import { Point } from '../entities/Point';
+import { Point } from '../entity/Point';
 
 export class RectangleValidator {
     static isRectangle(points: Point[]): boolean {

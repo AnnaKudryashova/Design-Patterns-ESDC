@@ -1,10 +1,10 @@
-import { RectangleFactory } from './factories/RectangleFactory';
-import { SphereFactory } from './factories/SphereFactory';
-import { FileReader } from './utils/FileReader';
-import { Logger } from './utils/Logger';
-import { RectangleService } from './services/RectangleService';
-import { SphereService } from './services/SphereService';
-import { CustomException } from './exceptions/CustomException';
+import { RectangleFactory } from './factory/RectangleFactory';
+import { SphereFactory } from './factory/SphereFactory';
+import { FileReader } from './util/FileReader';
+import { Logger } from './util/Logger';
+import { RectangleService } from './service/RectangleService';
+import { SphereService } from './service/SphereService';
+import { CustomException } from './exception/CustomException';
 
 try {
     const rectangleData = FileReader.read('./data/rectangles.txt', 8);

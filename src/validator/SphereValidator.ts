@@ -1,4 +1,4 @@
-import { Sphere } from '../entities/Sphere';
+import { Sphere } from '../entity/Sphere';
 
 export class SphereValidator {
     static isSphere(sphere: Sphere): boolean {

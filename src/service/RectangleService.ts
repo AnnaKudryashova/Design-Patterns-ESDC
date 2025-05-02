@@ -1,6 +1,6 @@
-import { Point } from '../entities/Point';
-import { Rectangle } from '../entities/Rectangle';
-import { RectangleValidator } from '../validators/RectangleValidator';
+import { Point } from '../entity/Point';
+import { Rectangle } from '../entity/Rectangle';
+import { RectangleValidator } from '../validator/RectangleValidator';
 
 export class RectangleService {
     static calculateArea(rectangle: Rectangle): number {

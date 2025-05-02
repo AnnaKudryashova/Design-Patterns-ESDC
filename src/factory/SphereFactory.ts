@@ -1,6 +1,6 @@
 import { ShapeFactory } from './ShapeFactory';
-import { Sphere } from '../entities/Sphere';
-import { Point } from '../entities/Point';
+import { Sphere } from '../entity/Sphere';
+import { Point } from '../entity/Point';
 
 export class SphereFactory extends ShapeFactory {
     createShape(data: number[]): Sphere {

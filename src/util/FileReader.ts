@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { Logger } from './Logger';
-import { CustomException } from '../exceptions/CustomException';
+import { CustomException } from '../exception/CustomException';
 
-import { ShapeValidator } from '../validators/ShapeValidator';
+import { ShapeValidator } from '../validator/ShapeValidator';
 
 export class FileReader {
 

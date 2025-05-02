@@ -1,5 +1,5 @@
-import { Sphere } from '../entities/Sphere';
-import { SphereValidator } from '../validators/SphereValidator';
+import { Sphere } from '../entity/Sphere';
+import { SphereValidator } from '../validator/SphereValidator';
 
 export class SphereService {
     static calculateSurfaceArea(sphere: Sphere): number {

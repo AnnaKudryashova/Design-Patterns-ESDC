@@ -1,6 +1,6 @@
 import { ShapeFactory } from './ShapeFactory';
-import { Rectangle } from '../entities/Rectangle';
-import { Point } from '../entities/Point';
+import { Rectangle } from '../entity/Rectangle';
+import { Point } from '../entity/Point';
 
 export class RectangleFactory extends ShapeFactory {
     createShape(data: number[]): Rectangle {

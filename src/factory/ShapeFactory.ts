@@ -1,5 +1,5 @@
-import { Shape } from '../entities/Shape';
-import { ShapeIdGenerator } from '../utils/ShapeIdGenerator';
+import { Shape } from '../entity/Shape';
+import { ShapeIdGenerator } from '../util/ShapeIdGenerator';
 
 export abstract class ShapeFactory {
     protected generateId(prefix: string): string {
