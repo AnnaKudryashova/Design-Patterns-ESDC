@@ -1,7 +1,14 @@
-import { Shape } from './Shape';
-import { Point } from './Point';
+import { Point } from "./point";
+import { Shape } from "./shape";
 
+export class Sphere extends Shape {
+  constructor(
+    id: string,
+    public readonly center: Point,
+    public readonly radius: number
+  ) {
+    super(id, 'sphere', [center]);
+  }
 
-export class Sphere implements Shape {
-    constructor(public id: string, public points: Point[], public radius: number) {}
+  get type(): string { return 'sphere'; }
 }

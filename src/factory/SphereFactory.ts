@@ -1,12 +1,18 @@
-import { ShapeFactory } from './ShapeFactory';
-import { Sphere } from '../entity/Sphere';
-import { Point } from '../entity/Point';
+import { Point } from "../entity/point";
+import { Sphere } from "../entity/sphere";
+import { SphereValidator } from "../validator/sphereValidator";
+import { ShapeFactory } from "./shapeFactory";
 
-export class SphereFactory extends ShapeFactory {
-    createShape(data: number[]): Sphere {
-        const center = new Point(data[0], data[1], data[2]);
-        const radius = data[3];
-        const id = this.generateId('sphere');
-        return new Sphere(id, [center], radius);
+export class SphereFactory implements ShapeFactory {
+  private validator = new SphereValidator();
+
+  create(id: string, data: string[]): Sphere {
+    if (!this.validator.validate(data)) {
+      throw new Error('Invalid sphere data');
     }
+
+    const [center, radius] = data;
+    const [x, y, z] = center.split(',').map(Number);
+    return new Sphere(id, new Point(x, y, z), Number(radius));
+  }
 }

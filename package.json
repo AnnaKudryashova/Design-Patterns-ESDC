@@ -12,6 +12,8 @@
     "license": "ISC",
     "devDependencies": {
         "@types/jest": "^29.5.14",
+        "@types/uuid": "^10.0.0",
+        "@types/node": "^14.x",
         "jest": "^29.7.0",
         "ts-jest": "^29.2.6",
         "ts-node": "^10.9.2",
@@ -19,6 +21,7 @@
     },
     "dependencies": {
         "pino": "^9.6.0",
-        "pino-pretty": "^13.0.0"
+        "pino-pretty": "^13.0.0",
+        "uuid": "^11.1.0"
     }
 }

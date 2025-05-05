@@ -1,16 +1,10 @@
-import { ShapeFactory } from './ShapeFactory';
-import { Rectangle } from '../entity/Rectangle';
-import { Point } from '../entity/Point';
+import { Point } from "../entity/point";
+import { Rectangle } from "../entity/rectangle";
+import { ShapeFactory } from "./shapeFactory";
 
-export class RectangleFactory extends ShapeFactory {
-    createShape(data: number[]): Rectangle {
-        const points = [
-            new Point(data[0], data[1]),
-            new Point(data[2], data[3]),
-            new Point(data[4], data[5]),
-            new Point(data[6], data[7]),
-        ];
-        const id = this.generateId('rect');
-        return new Rectangle(id, points);
-    }
+export class RectangleFactory implements ShapeFactory<[Point, Point, Point, Point]> {
+  create(id: string, data: [Point, Point, Point, Point]): Rectangle {
+      const [p1, p2, p3, p4] = data;
+      return new Rectangle(id, p1, p2, p3, p4);
+  }
 }

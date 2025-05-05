@@ -1,52 +1,62 @@
-import { Point } from '../entity/Point';
+import { GeometryHelper } from "../service/geometry/geometryHelper";
 
 export class RectangleValidator {
-    static isRectangle(points: Point[]): boolean {
-        if (points.length !== 4) return false;
+  validate(coords: string[]): boolean {
+    if (coords.length !== 8) return false;
 
-        const [p1, p2, p3, p4] = points;
+    if (!GeometryHelper.areAllNumbers(coords)) return false;
 
-        // Check if opposite sides are equal and parallel
-        const diagonal1 = this.distance(p1, p3);
-        const diagonal2 = this.distance(p2, p4);
-        return diagonal1 === diagonal2;
+    const nums = coords.map(Number);
+
+    const points = [
+      { x: nums[0], y: nums[1] },
+      { x: nums[2], y: nums[3] },
+      { x: nums[4], y: nums[5] },
+      { x: nums[6], y: nums[7] }
+    ];
+
+    if (this.hasDuplicatePoints(points)) return false;
+
+    return this.isValidRectangle(points);
+  }
+
+  private hasDuplicatePoints(points: {x: number, y: number}[]): boolean {
+    for (let i = 0; i < points.length; i++) {
+      for (let j = i + 1; j < points.length; j++) {
+        if (GeometryHelper.arePointsEqual(points[i], points[j])) {
+          return true;
+        }
+      }
     }
+    return false;
+  }
 
-    static isSquare(points: Point[]): boolean {
-        if (!this.isRectangle(points)) return false;
+  private isValidRectangle(points: {x: number, y: number}[]): boolean {
+    const [p1, p2, p3, p4] = points;
 
-        const [p1, p2, p3] = points;
-        const side1 = this.distance(p1, p2);
-        const side2 = this.distance(p2, p3);
-        return side1 === side2;
-    }
+    // Calculate all side lengths
+    const d12 = GeometryHelper.distance(p1, p2);
+    const d23 = GeometryHelper.distance(p2, p3);
+    const d34 = GeometryHelper.distance(p3, p4);
+    const d41 = GeometryHelper.distance(p4, p1);
 
-    static isRhombus(points: Point[]): boolean {
-        if (!this.isRectangle(points)) return false;
+    // Calculate diagonal lengths
+    const d13 = GeometryHelper.distance(p1, p3);
+    const d24 = GeometryHelper.distance(p2, p4);
 
-        const [p1, p2, p3] = points;
-        const side1 = this.distance(p1, p2);
-        const side2 = this.distance(p2, p3);
-        return side1 === side2;
-    }
+    // Check opposite sides are equal
+    if (!GeometryHelper.areEqual(d12, d34)) return false;
+    if (!GeometryHelper.areEqual(d23, d41)) return false;
 
-    static isTrapezoid(points: Point[]): boolean {
-        if (points.length !== 4) return false;
+    // Check diagonals are equal
+    if (!GeometryHelper.areEqual(d13, d24)) return false;
 
-        const [p1, p2, p3, p4] = points;
-        const slope1 = this.slope(p1, p2);
-        const slope2 = this.slope(p3, p4);
-        const slope3 = this.slope(p2, p3);
-        const slope4 = this.slope(p4, p1);
+    if (GeometryHelper.areCollinear(p1, p2, p3)) return false;
 
-        return slope1 === slope2 || slope3 === slope4;
-    }
-
-    private static distance(p1: Point, p2: Point): number {
-        return Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
-    }
-
-    private static slope(p1: Point, p2: Point): number {
-        return (p2.y - p1.y) / (p2.x - p1.x);
-    }
+    // Check angles are 90 degrees
+    return GeometryHelper.isRightAngle(p1, p2, p3) &&
+           GeometryHelper.isRightAngle(p2, p3, p4) &&
+           GeometryHelper.isRightAngle(p3, p4, p1) &&
+           GeometryHelper.isRightAngle(p4, p1, p2);
+  }
 }

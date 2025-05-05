@@ -1,55 +1,53 @@
-import { RectangleFactory } from './factory/RectangleFactory';
-import { SphereFactory } from './factory/SphereFactory';
-import { FileReader } from './util/FileReader';
-import { Logger } from './util/Logger';
-import { RectangleService } from './service/RectangleService';
-import { SphereService } from './service/SphereService';
-import { CustomException } from './exception/CustomException';
+import path from 'path';
+import { ShapeManager } from './service/shapeManager';
+import { ShapeRepository } from './repository/shapeRepository';
+import { logger } from './util/logger';
+import { Warehouse } from './warehouse/warehouse';
+import { Point } from './entity/point';
 
-try {
-    const rectangleData = FileReader.read('./data/rectangles.txt', 8);
-    const rectangleFactory = new RectangleFactory();
+async function main() {
+  const shapeManager = new ShapeManager();
 
-    rectangleData.forEach((data) => {
-        try {
-            const rectangle = rectangleFactory.createShape(data);
-            Logger.info(`Rectangle Area: ${RectangleService.calculateArea(rectangle)}`);
-            Logger.info(`Rectangle Perimeter: ${RectangleService.calculatePerimeter(rectangle)}`);
-        } catch (error) {
-            Logger.error('An error occurred:', error instanceof Error ? error.message : error);
-        }
-    });
-} catch (error) {
-    if (error instanceof CustomException) {
-        Logger.error(`CustomException: ${error.message}`);
-        if (error.cause) {
-            Logger.error(`Caused by: ${error.cause.message}`);
-        }
-    } else {
-        Logger.error('An error occurred:', error instanceof Error ? error.message : error);
+  try {
+    const dataFilePath = path.join(__dirname, '../data/shapes.txt');
+    await shapeManager.processFile(dataFilePath);
+
+    const repository = ShapeRepository.getInstance();
+    const warehouse = Warehouse.getInstance();
+
+    const rectangles = repository.findByType('rectangle');
+    logger.info(`Found ${rectangles.length} rectangles`);
+
+    const spheres = repository.findByType('sphere');
+    logger.info(`Found ${spheres.length} spheres`);
+
+    if (rectangles.length > 0) {
+      const calc = warehouse.get(rectangles[0].id);
+      logger.info(`First rectangle calculations:`, calc);
     }
+
+    if (rectangles.length > 0) {
+      const target = rectangles[0];
+      const originalPoints = [...target.points];
+
+      logger.info(`--- Simulating shape update ---`);
+
+      const modifiedPoints = originalPoints.map((p, i) =>
+        i === 0 ? new Point(p.x + 1, p.y, p.z) : p
+      );
+
+      repository.updateShape(target.id, modifiedPoints);
+
+      // Optionally: update back to original to see no changes triggered
+      logger.info(`--- Reverting shape update to original ---`);
+      repository.updateShape(target.id, originalPoints);
+    }
+
+  } catch (error) {
+    logger.error('Application error:', error instanceof Error ? error.message : String(error));
+    process.exit(1);
+  }
+
 }
 
-try {
-    const sphereData = FileReader.read('./data/spheres.txt', 4);
-    const sphereFactory = new SphereFactory();
-
-    sphereData.forEach((data) => {
-        try {
-            const sphere = sphereFactory.createShape(data);
-            Logger.info(`Sphere Surface Area: ${SphereService.calculateSurfaceArea(sphere)}`);
-            Logger.info(`Sphere Volume: ${SphereService.calculateVolume(sphere)}`);
-        } catch (error) {
-            Logger.error('An error occurred:', error instanceof Error ? error.message : error);
-        }
-    });
-} catch (error) {
-    if (error instanceof CustomException) {
-        Logger.error(`CustomException: ${error.message}`);
-        if (error.cause) {
-            Logger.error(`Caused by: ${error.cause.message}`);
-        }
-    } else {
-        Logger.error('An error occurred:', error instanceof Error ? error.message : error);
-    }
-}
+main();

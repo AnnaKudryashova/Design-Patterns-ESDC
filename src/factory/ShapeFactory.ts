@@ -1,10 +1,5 @@
-import { Shape } from '../entity/Shape';
-import { ShapeIdGenerator } from '../util/ShapeIdGenerator';
+import { Shape } from "../entity/shape";
 
-export abstract class ShapeFactory {
-    protected generateId(prefix: string): string {
-        return ShapeIdGenerator.generateId(prefix);
-    }
-
-    abstract createShape(data: number[]): Shape;
+export interface ShapeFactory<T = any> {
+  create(id: string, data: T): Shape;
 }

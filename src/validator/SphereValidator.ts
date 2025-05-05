@@ -1,16 +1,15 @@
-import { Sphere } from '../entity/Sphere';
+import { GeometryHelper } from "../service/geometry/geometryHelper";
 
 export class SphereValidator {
-    static isSphere(sphere: Sphere): boolean {
-        return sphere.radius > 0;
-    }
+  validate(coords: string[]): boolean {
 
-    static touchesCoordinatePlane(sphere: Sphere): boolean {
-        const { x, y, z } = sphere.points[0];
-        return (
-            Math.abs(x) === sphere.radius ||
-            Math.abs(y) === sphere.radius ||
-            Math.abs(z) === sphere.radius
-        );
-    }
+    if (coords.length !== 4) return false;
+
+    if (!GeometryHelper.areAllNumbers(coords)) return false;
+
+    const nums = coords.map(Number);
+    const radius = nums[3];
+
+    return radius > 0;
+  }
 }
