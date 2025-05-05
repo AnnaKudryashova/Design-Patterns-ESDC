@@ -32,7 +32,12 @@ export abstract class BaseGeometryService {
   }
 
   protected slope(p1: Point, p2: Point): number {
-    if (p2.x - p1.x === 0) return Infinity;
+    if (p2.x - p1.x === 0) return Number.POSITIVE_INFINITY;
     return (p2.y - p1.y) / (p2.x - p1.x);
+  }
+
+  protected slopesEqual(m1: number, m2: number): boolean {
+    if (!isFinite(m1) && !isFinite(m2)) return true;
+    return Math.abs(m1 - m2) < 1e-10;
   }
 }

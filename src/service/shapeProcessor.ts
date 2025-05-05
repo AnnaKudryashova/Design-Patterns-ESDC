@@ -26,14 +26,11 @@ export class ShapeProcessor {
         throw new Error(`Invalid ${data.type} data format`);
       }
 
-      const factory = this.factoryProvider.getFactory(data.type);
       const shape = this.createShape(data.type, data.rawCoordinates);
-
       const basic = this.calculateBasicMetrics(shape);
       const extended = this.calculateExtendedMetrics(shape);
 
       this.repository.add(shape);
-      this.repository.getWarehouse().update(shape.id, basic);
 
       return { shape, basic, extended };
     }

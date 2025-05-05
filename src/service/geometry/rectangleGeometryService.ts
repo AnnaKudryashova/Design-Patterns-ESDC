@@ -66,8 +66,8 @@ export class RectangleGeometryService extends BaseGeometryService {
     const slope4 = this.slope(p4, p1);
 
     return (
-      Math.abs(slope1 - slope2) < Number.EPSILON ||
-      Math.abs(slope3 - slope4) < Number.EPSILON
+      this.slopesEqual(slope1, slope2) ||
+      this.slopesEqual(slope3, slope4)
     );
   }
 
