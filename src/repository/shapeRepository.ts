@@ -3,87 +3,113 @@ import { Shape } from "../entity/shape";
 import { GeometryService } from "../service/geometry/geometryService";
 import { logger } from "../util/logger";
 import { Warehouse } from "../warehouse/warehouse";
-import { Observer, ShapeObserver } from "../observer/shapeObserver";
-import { Specification } from "../specification/specification";
+import { Observer, ShapeObserver, ShapeObservable, ShapeEventType, ShapeEvent } from "../observer/shapeObserver";
+import { Specification, SortSpecification } from "../specification/specification";
 
 export class ShapeRepository {
     private static instance: ShapeRepository;
-    private items: Map<string, Shape> = new Map();
+    private shapes: Map<string, Shape> = new Map();
     private warehouse: Warehouse;
     private geometryService: GeometryService;
-    private observer: Observer;
+    private observable: ShapeObservable;
 
     private constructor(
         warehouse: Warehouse = Warehouse.getInstance(),
-        geometryService: GeometryService = new GeometryService(),
-        observer: Observer = new ShapeObserver(geometryService))
+        geometryService: GeometryService = new GeometryService())
     {
         this.warehouse = warehouse;
         this.geometryService = geometryService;
-        this.observer = observer;
+        this.observable = new ShapeObservable();
+        logger.info("ShapeRepository instance created.");
     }
 
-      public static getInstance(): ShapeRepository {
+    public static getInstance(): ShapeRepository {
         if (!ShapeRepository.instance) {
-          ShapeRepository.instance = new ShapeRepository();
+            ShapeRepository.instance = new ShapeRepository();
         }
         return ShapeRepository.instance;
-      }
+    }
 
-      public getWarehouse(): Warehouse {
+    public getWarehouse(): Warehouse {
         return this.warehouse;
-      }
+    }
 
-      add(item: Shape): void {
-        this.items.set(item.id, item);
-        this.observer.update(item);
-      }
+    add(shape: Shape): void {
+        this.shapes.set(shape.id, shape);
+        this.observable.notify({
+            type: ShapeEventType.CREATED,
+            shape
+        });
+        logger.info(`Shape ${shape.id} added to repository`);
+    }
 
-
-    updateShape(id: string, newPoints: Point[]): void {
-        const shape = this.findById(id);
+    updateShape(id: string, points: Point[]): void {
+        const shape = this.shapes.get(id);
         if (!shape) {
-            logger.warn(`Shape with ID ${id} not found for update.`);
-            return;
+            throw new Error(`Shape with id ${id} not found`);
         }
 
-        shape.points = newPoints; // Mutate the shape
-        logger.info(`Shape ${id} points updated.`);
+        const previousState = { ...shape, points: [...shape.points], type: shape.type };
+        shape.points = points;
 
-        this.observer.update(shape);
+        this.observable.notify({
+            type: ShapeEventType.UPDATED,
+            shape,
+            previousState
+        });
+        logger.info(`Shape ${id} updated in repository`);
     }
 
     remove(id: string): void {
-          this.items.delete(id);
-          this.warehouse.remove(id);
+        const shape = this.shapes.get(id);
+        if (!shape) {
+            throw new Error(`Shape with id ${id} not found`);
+        }
+
+        this.shapes.delete(id);
+        this.observable.notify({
+            type: ShapeEventType.DELETED,
+            shape
+        });
+        logger.info(`Shape ${id} removed from repository`);
     }
 
-    findById(id: string): Shape | undefined {
-      return this.items.get(id);
+    get(id: string): Shape | undefined {
+        return this.shapes.get(id);
     }
 
     findByType(type: string): Shape[] {
-      return this.findAll().filter(shape => shape.type === type);
+        return Array.from(this.shapes.values())
+            .filter(shape => shape.type === type);
     }
 
-    findByCriteria(criteria: (item: Shape) => boolean): Shape[] {
-        return Array.from(this.items.values()).filter(criteria);
+    findBySpecification(specification: Specification): Shape[] {
+        return Array.from(this.shapes.values())
+            .filter(shape => specification.isSatisfiedBy(shape));
+    }
+
+    sortBySpecification(specification: SortSpecification): Shape[] {
+        return Array.from(this.shapes.values())
+            .sort((a, b) => specification.compare(a, b));
+    }
+
+    attachObserver(observer: Observer<Shape>): void {
+        this.observable.attach(observer);
+    }
+
+    detachObserver(observer: Observer<Shape>): void {
+        this.observable.detach(observer);
     }
 
     findAll(): Shape[] {
-      console.log('findAll', this.items);
-        return Array.from(this.items.values());
+        return Array.from(this.shapes.values());
+    }
+
+    findByCriteria(criteria: (item: Shape) => boolean): Shape[] {
+        return Array.from(this.shapes.values()).filter(criteria);
     }
 
     sort(criteria: (a: Shape, b: Shape) => number): Shape[] {
-        return Array.from(this.items.values()).sort(criteria);
-    }
-
-    findBySpecification(spec: (shape: Shape) => boolean): Shape[] {
-      return Array.from(this.items.values()).filter(spec);
-    }
-
-    sortBySpecification(compareFn: (a: Shape, b: Shape) => number): Shape[] {
-      return Array.from(this.items.values()).sort(compareFn);
+        return Array.from(this.shapes.values()).sort(criteria);
     }
 }

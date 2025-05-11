@@ -2,20 +2,80 @@ import { Shape } from "../entity/shape";
 import { Warehouse } from "../warehouse/warehouse";
 import { ShapeMetrics } from "../warehouse/shapeMetrics";
 import { GeometryService } from "../service/geometry/geometryService";
+import { logger } from "../util/logger";
 
-export interface Observer {
-    update(shape: Shape): void;
+export interface Observer<T = any> {
+    update(subject: Subject<T>, event: ShapeEvent): void;
 }
 
-export class ShapeObserver implements Observer {
-    private geometryService: GeometryService;
+export interface Subject<T = any> {
+    attach(observer: Observer<T>): void;
+    detach(observer: Observer<T>): void;
+    notify(event: ShapeEvent): void;
+}
 
-    constructor(geometryService: GeometryService = new GeometryService()) {
-        this.geometryService = geometryService;
+export enum ShapeEventType {
+    CREATED = 'CREATED',
+    UPDATED = 'UPDATED',
+    DELETED = 'DELETED'
+}
+
+export interface ShapeEvent {
+    type: ShapeEventType;
+    shape: Shape;
+    previousState?: Shape;
+}
+
+export class ShapeObservable implements Subject<Shape> {
+    private observers: Observer<Shape>[] = [];
+
+    attach(observer: Observer<Shape>): void {
+        const isExist = this.observers.includes(observer);
+        if (isExist) {
+            logger.warn('Observer has been attached already.');
+            return;
+        }
+        this.observers.push(observer);
+        logger.info('Observer attached successfully.');
     }
 
-    update(shape: Shape): void {
-        const warehouse = Warehouse.getInstance();
+    detach(observer: Observer<Shape>): void {
+        const observerIndex = this.observers.indexOf(observer);
+        if (observerIndex === -1) {
+            logger.warn('Observer not found.');
+            return;
+        }
+        this.observers.splice(observerIndex, 1);
+        logger.info('Observer detached successfully.');
+    }
+
+    notify(event: ShapeEvent): void {
+        for (const observer of this.observers) {
+            observer.update(this, event);
+        }
+    }
+}
+
+export class ShapeObserver implements Observer<Shape> {
+    private readonly geometryService: GeometryService;
+    private readonly warehouse: Warehouse;
+
+    constructor(
+        geometryService: GeometryService = new GeometryService(),
+        warehouse: Warehouse = Warehouse.getInstance()
+    ) {
+        this.geometryService = geometryService;
+        this.warehouse = warehouse;
+    }
+
+    update(subject: Subject<Shape>, event: ShapeEvent): void {
+        const { shape, type } = event;
+        
+        if (type === ShapeEventType.DELETED) {
+            this.warehouse.remove(shape.id);
+            return;
+        }
+
         const metrics: ShapeMetrics = {
             area: this.geometryService.calculateArea(shape),
             perimeter: shape.type === 'rectangle'
@@ -25,6 +85,8 @@ export class ShapeObserver implements Observer {
                 ? this.geometryService.calculateVolume(shape)
                 : undefined
         };
-        warehouse.update(shape.id, metrics);
+
+        this.warehouse.update(shape.id, metrics);
+        logger.info(`Shape ${shape.id} metrics updated after ${type.toLowerCase()}`);
     }
 }

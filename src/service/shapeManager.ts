@@ -1,6 +1,6 @@
 import { Shape } from "../entity/shape";
 import { ShapeRepository } from "../repository/shapeRepository";
-import { Specification } from "../specification/specification";
+import { SpecificationFactory } from "../specification/specification";
 import { logger } from "../util/logger";
 import { DataReader } from "./dataReader";
 import { GeometryService } from "./geometry/geometryService";
@@ -67,31 +67,31 @@ export class ShapeManager {
 
   findInFirstQuadrant(): Shape[] {
     return this.repository.findBySpecification(
-      Specification.byFirstQuadrant(this.geometryService)
+      SpecificationFactory.byFirstQuadrant(this.geometryService)
     );
   }
 
   findShapesInAreaRange(min: number, max: number): Shape[] {
     return this.repository.findBySpecification(
-      Specification.byAreaRange(min, max, this.geometryService)
+      SpecificationFactory.byAreaRange(min, max, this.geometryService)
     );
   }
 
   findShapesNearOrigin(maxDistance: number): Shape[] {
     return this.repository.findBySpecification(
-      Specification.byDistanceFromOrigin(maxDistance, this.geometryService)
+      SpecificationFactory.byDistanceFromOrigin(maxDistance, this.geometryService)
     );
   }
 
   sortByX(): Shape[] {
     return this.repository.sortBySpecification(
-      Specification.sortByX(this.geometryService)
+      SpecificationFactory.sortByX(this.geometryService)
     );
   }
 
   sortByY(): Shape[] {
     return this.repository.sortBySpecification(
-      Specification.sortByY(this.geometryService)
+      SpecificationFactory.sortByY(this.geometryService)
     );
   }
 }
