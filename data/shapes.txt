@@ -3,7 +3,7 @@ rectangle 0 0 4 0 4 3 0 3
 rectangle 1 1 5 1 5 4 1 4
 rectangle -1 -1 3 -1 3 2 -1 2
 
-# Invalid rectangles (should fail validation but pass parsing)
+# Invalid rectangles
 rectangle 2a 3 6 3 6 7 2 7  # Bad coordinate
 rectangle 3 4 7 4 3 4 7 4    # Invalid geometry
 rectangle a b c d e f g h    # Non-numeric
@@ -14,7 +14,7 @@ sphere 0 0 0 5
 sphere 2 2 2 3
 sphere -3 -4 -5 2
 
-# Invalid spheres (should fail validation but pass parsing)
+# Invalid spheres
 sphere 1a 2 3 4     # Bad coordinate
 sphere 4 5 6 0      # Zero radius
 sphere x y z r      # Non-numeric

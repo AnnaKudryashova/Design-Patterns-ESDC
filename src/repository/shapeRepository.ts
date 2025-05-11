@@ -4,6 +4,7 @@ import { GeometryService } from "../service/geometry/geometryService";
 import { logger } from "../util/logger";
 import { Warehouse } from "../warehouse/warehouse";
 import { Observer, ShapeObserver } from "../observer/shapeObserver";
+import { Specification } from "../specification/specification";
 
 export class ShapeRepository {
     private static instance: ShapeRepository;
@@ -76,5 +77,13 @@ export class ShapeRepository {
 
     sort(criteria: (a: Shape, b: Shape) => number): Shape[] {
         return Array.from(this.items.values()).sort(criteria);
+    }
+
+    findBySpecification(spec: (shape: Shape) => boolean): Shape[] {
+      return Array.from(this.items.values()).filter(spec);
+    }
+
+    sortBySpecification(compareFn: (a: Shape, b: Shape) => number): Shape[] {
+      return Array.from(this.items.values()).sort(compareFn);
     }
 }

@@ -1,25 +1,33 @@
 import { logger } from "../util/logger";
 import fs from 'fs/promises';
 
+export type ShapeType = 'rectangle' | 'sphere';
+
 export interface ShapeFileData {
-  type: 'rectangle' | 'sphere';
+  type: ShapeType;
   rawCoordinates: string[];
   lineNumber: number;
 }
 
 export class DataReader {
+  private static readonly SUPPORTED_SHAPES: ShapeType[] = ['rectangle', 'sphere'];
+  private static readonly RECTANGLE_COORDINATES = 8;
+  private static readonly SPHERE_COORDINATES = 4;
+
   static async read(filePath: string): Promise<ShapeFileData[]> {
     try {
       const content = await fs.readFile(filePath, 'utf-8');
       return this.parseLines(content);
     } catch (error) {
-      logger.error(`Failed to read file: ${filePath}`);
-      throw new Error(`File read failed: ${error instanceof Error ? error.message : String(error)}`);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(`Failed to read file: ${filePath}`, { error: errorMessage });
+      throw new Error(`File read failed: ${errorMessage}`);
     }
   }
 
   private static parseLines(content: string): ShapeFileData[] {
-    return content.split('\n')
+    return content
+      .split('\n')
       .map((line, index) => this.parseLine(line, index + 1))
       .filter((entry): entry is ShapeFileData => entry !== null);
   }
@@ -31,32 +39,33 @@ export class DataReader {
       return null;
     }
 
-    const parts = lineWithoutInlineComment.split(/\s+/).filter(part => part.length > 0);
+    const parts = lineWithoutInlineComment.split(/\s+/).filter(Boolean);
 
     if (parts.length < 1) {
       return null;
     }
 
     const [typeRaw, ...coords] = parts;
-    const type = typeRaw.toLowerCase();
+    const type = typeRaw.toLowerCase() as ShapeType;
 
-    if (!['rectangle', 'sphere'].includes(type)) {
+    if (!this.SUPPORTED_SHAPES.includes(type)) {
       logger.warn(`Line ${lineNumber}: Skipping unsupported shape type "${typeRaw}"`);
       return null;
     }
 
-    if (type === 'rectangle' && coords.length !== 8) {
-      logger.warn(`Line ${lineNumber}: Rectangle needs exactly 8 coordinates (got ${coords.length})`);
-      return null;
-    }
+    const expectedCoordinates = type === 'rectangle' 
+      ? this.RECTANGLE_COORDINATES 
+      : this.SPHERE_COORDINATES;
 
-    if (type === 'sphere' && coords.length !== 4) {
-      logger.warn(`Line ${lineNumber}: Sphere needs exactly 4 values (got ${coords.length})`);
+    if (coords.length !== expectedCoordinates) {
+      logger.warn(
+        `Line ${lineNumber}: ${type} needs exactly ${expectedCoordinates} coordinates (got ${coords.length})`
+      );
       return null;
     }
 
     return {
-      type: type as 'rectangle' | 'sphere',
+      type,
       rawCoordinates: coords,
       lineNumber
     };
