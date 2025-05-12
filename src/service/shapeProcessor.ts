@@ -2,9 +2,8 @@ import { Point } from "../entity/point";
 import { Shape } from "../entity/shape";
 import { ShapeFactoryProvider } from "../factory/shapeFactoryProvider";
 import { ShapeRepository } from "../repository/shapeRepository";
+import { ExtendedMetrics, ShapeMetrics } from "../types";
 import { ValidatorProvider } from "../validator/validatorProvider";
-import { ExtendedMetrics } from "../warehouse/extendedMetrics";
-import { ShapeMetrics } from "../warehouse/shapeMetrics";
 import { GeometryService } from "./geometry/geometryService";
 import { v4 as uuidv4 } from 'uuid';
 

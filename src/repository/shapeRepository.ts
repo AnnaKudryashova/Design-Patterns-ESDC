@@ -4,7 +4,7 @@ import { Sphere } from "../entity/sphere";
 import { GeometryService } from "../service/geometry/geometryService";
 import { logger } from "../util/logger";
 import { Warehouse } from "../warehouse/warehouse";
-import { Observer, ShapeObserver, ShapeObservable, ShapeEventType, ShapeEvent } from "../observer/shapeObserver";
+import { Observer, ShapeObserver, ShapeObservable, ShapeEventType } from "../observer/shapeObserver";
 import { Specification, SortSpecification } from "../specification/specification";
 import { RectangleFactory } from "../factory/rectangleFactory";
 
@@ -122,13 +122,5 @@ export class ShapeRepository {
 
     findAll(): Shape[] {
         return Array.from(this.shapes.values());
-    }
-
-    findByCriteria(criteria: (item: Shape) => boolean): Shape[] {
-        return Array.from(this.shapes.values()).filter(criteria);
-    }
-
-    sort(criteria: (a: Shape, b: Shape) => number): Shape[] {
-        return Array.from(this.shapes.values()).sort(criteria);
     }
 }

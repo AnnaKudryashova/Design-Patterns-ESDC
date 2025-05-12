@@ -1,4 +1,4 @@
-import { ShapeMetrics } from "../src/warehouse/shapeMetrics";
+import { ShapeMetrics } from "../src/types";
 import { Warehouse } from "../src/warehouse/warehouse";
 
 describe('Warehouse', () => {
@@ -30,10 +30,10 @@ describe('Warehouse', () => {
   });
 
   it('should format metrics to two decimal places', () => {
-    const metrics: ShapeMetrics = { 
-      area: 4.12345, 
-      perimeter: 8.98765, 
-      volume: 33.45678 
+    const metrics: ShapeMetrics = {
+      area: 4.12345,
+      perimeter: 8.98765,
+      volume: 33.45678
     };
     warehouse.update('1', metrics);
     const retrieved = warehouse.get('1');

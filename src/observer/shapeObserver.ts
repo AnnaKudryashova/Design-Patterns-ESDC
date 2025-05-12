@@ -1,8 +1,8 @@
 import { Shape } from "../entity/shape";
 import { Warehouse } from "../warehouse/warehouse";
-import { ShapeMetrics } from "../warehouse/shapeMetrics";
 import { GeometryService } from "../service/geometry/geometryService";
 import { logger } from "../util/logger";
+import { ShapeMetrics } from "../types";
 
 export interface Observer<T = any> {
     update(subject: Subject<T>, event: ShapeEvent): void;
@@ -70,7 +70,7 @@ export class ShapeObserver implements Observer<Shape> {
 
     update(subject: Subject<Shape>, event: ShapeEvent): void {
         const { shape, type } = event;
-        
+
         if (type === ShapeEventType.DELETED) {
             this.warehouse.remove(shape.id);
             return;

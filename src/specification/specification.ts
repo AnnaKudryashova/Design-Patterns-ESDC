@@ -58,7 +58,6 @@ export class SortByYSpecification implements SortSpecification {
     }
 }
 
-// Factory class to create specifications
 export class SpecificationFactory {
     static byFirstQuadrant(geometryService: GeometryService): Specification {
         return new FirstQuadrantSpecification(geometryService);

@@ -1,5 +1,6 @@
+import { ShapeMetrics } from "../types";
 import { logger } from "../util/logger";
-import { ShapeMetrics } from "./shapeMetrics";
+
 
 export class Warehouse {
   private static instance: Warehouse;
@@ -26,22 +27,22 @@ export class Warehouse {
 
   private areMetricsEqual(existing: ShapeMetrics, newMetrics: ShapeMetrics): boolean {
     const epsilon = 0.001; // Small value for floating-point comparison
-    
+
     // Compare area
     const areaEqual = Math.abs(existing.area - newMetrics.area) < epsilon;
-    
+
     // Compare perimeter
-    const perimeterEqual = 
+    const perimeterEqual =
       (existing.perimeter === undefined && newMetrics.perimeter === undefined) ||
       (existing.perimeter !== undefined && newMetrics.perimeter !== undefined &&
        Math.abs(existing.perimeter - newMetrics.perimeter) < epsilon);
-    
+
     // Compare volume
-    const volumeEqual = 
+    const volumeEqual =
       (existing.volume === undefined && newMetrics.volume === undefined) ||
       (existing.volume !== undefined && newMetrics.volume !== undefined &&
        Math.abs(existing.volume - newMetrics.volume) < epsilon);
-    
+
     return areaEqual && perimeterEqual && volumeEqual;
   }
 

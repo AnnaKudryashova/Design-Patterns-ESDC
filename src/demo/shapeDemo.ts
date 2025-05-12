@@ -160,9 +160,7 @@ export class ShapeDemo {
         );
 
         // Sort by Y coordinate
-        const sortedByY = this.repository.sortBySpecification(
-            SpecificationFactory.sortByY(this.geometryService)
-        );
+        const sortedByY = this.shapeManager.sortByY();
         logger.info('\nShapes sorted by Y coordinate:');
         sortedByY.forEach((shape: Shape) =>
             logger.info(`- ${shape.type} (ID: ${shape.id}, Y: ${this.geometryService.getFirstPointY(shape)})`)

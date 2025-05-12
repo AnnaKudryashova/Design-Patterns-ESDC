@@ -1,18 +1,16 @@
 import { Shape } from "../entity/shape";
 import { Point } from "../entity/point";
-import { Sphere } from "../entity/sphere";
 import { ShapeRepository } from "../repository/shapeRepository";
 import { SpecificationFactory } from "../specification/specification";
 import { logger } from "../util/logger";
-import { DataReader, IDataReader } from "./dataReader";
+import { DataReader } from "./dataReader";
 import { GeometryService } from "./geometry/geometryService";
 import { ShapeLogger } from "./shapeLogger";
 import { ShapeProcessor } from "./shapeProcessor";
-import { CONFIG, ERROR_MESSAGES, SHAPE_TYPES } from "../constants";
-import { ProcessingResult, IShapeManager, IShapeProcessor, IShapeLogger } from "../types";
+import { ERROR_MESSAGES, SHAPE_TYPES } from "../constants";
+import { ProcessingResult, IShapeManager, IShapeProcessor, IShapeLogger, ShapeMetrics } from "../types";
 import { ShapeNotFoundError, InvalidShapeTypeError } from "../exception/shapeExceptions";
 import { CustomException } from "../exception/customException";
-import { ShapeMetrics } from "../warehouse/shapeMetrics";
 
 export class ShapeManager implements IShapeManager {
   constructor(
@@ -29,7 +27,7 @@ export class ShapeManager implements IShapeManager {
     try {
       const dataReader = new DataReader(filePath);
       const shapesData = await dataReader.read();
-      
+
       for (const data of shapesData) {
         try {
           const { shape, basic, extended } = this.processor.process(data);
@@ -84,6 +82,12 @@ export class ShapeManager implements IShapeManager {
     );
   }
 
+  sortByY(): Shape[] {
+    return this.repository.sortBySpecification(
+      SpecificationFactory.sortByY(this.geometryService)
+    );
+  }
+
   findByType(type: string): Shape[] {
     if (!Object.values(SHAPE_TYPES).includes(type as any)) {
       throw new InvalidShapeTypeError(type);
@@ -98,13 +102,9 @@ export class ShapeManager implements IShapeManager {
     }
 
     if (shape.type === 'sphere') {
-      // For spheres, we need to update both center and radius
-      const sphere = shape as Sphere;
       const newCenter = points[0];
-      const newRadius = sphere.radius * 1.5; // Increase radius by 50%
       this.repository.updateShape(id, [newCenter]);
     } else {
-      // For rectangles, just update the points
       this.repository.updateShape(id, points);
     }
   }

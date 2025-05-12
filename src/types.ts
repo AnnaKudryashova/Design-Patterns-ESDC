@@ -1,8 +1,7 @@
 import { SHAPE_TYPES } from './constants';
 import { Shape } from './entity/shape';
 import { Point } from './entity/point';
-import { ShapeMetrics } from './warehouse/shapeMetrics';
-import { ExtendedMetrics } from './warehouse/extendedMetrics';
+import { SortSpecification, Specification } from './specification/specification';
 
 export type ShapeType = typeof SHAPE_TYPES[keyof typeof SHAPE_TYPES];
 export type ShapeEventType = 'created' | 'updated' | 'deleted';
@@ -31,7 +30,23 @@ export interface IShapeManager {
     findShapesInAreaRange(min: number, max: number): Shape[];
     findShapesNearOrigin(maxDistance: number): Shape[];
     sortByX(): Shape[];
+    sortByY(): Shape[];
     findByType(type: string): Shape[];
     updateShape(id: string, points: Point[]): void;
     getShapeMetrics(id: string): ShapeMetrics;
+}
+
+export interface ShapeMetrics {
+    area: number;
+    perimeter?: number;
+    volume?: number;
+}
+
+export interface ExtendedMetrics {
+    distance: number;
+    isSquare?: boolean;
+    isRhombus?: boolean;
+    isTrapezoid?: boolean;
+    touchesPlane?: boolean;
+    planeSplitRatio?: number;
 }

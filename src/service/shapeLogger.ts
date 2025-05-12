@@ -1,7 +1,6 @@
 import { Shape } from "../entity/shape";
+import { ExtendedMetrics, ShapeMetrics } from "../types";
 import { logger } from "../util/logger";
-import { ExtendedMetrics } from "../warehouse/extendedMetrics";
-import { ShapeMetrics } from "../warehouse/shapeMetrics";
 
 export class ShapeLogger {
     log(shape: Shape, basic: ShapeMetrics, extended: ExtendedMetrics, line: number) {
