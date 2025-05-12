@@ -5,7 +5,7 @@ import { logger } from "../util/logger";
 import { ShapeMetrics } from "../types";
 
 export interface Observer<T = any> {
-    update(subject: Subject<T>, event: ShapeEvent): void;
+    update(event: ShapeEvent): void;
 }
 
 export interface Subject<T = any> {
@@ -23,7 +23,6 @@ export enum ShapeEventType {
 export interface ShapeEvent {
     type: ShapeEventType;
     shape: Shape;
-    previousState?: Shape;
 }
 
 export class ShapeObservable implements Subject<Shape> {
@@ -51,7 +50,7 @@ export class ShapeObservable implements Subject<Shape> {
 
     notify(event: ShapeEvent): void {
         for (const observer of this.observers) {
-            observer.update(this, event);
+            observer.update(event);
         }
     }
 }
@@ -68,7 +67,7 @@ export class ShapeObserver implements Observer<Shape> {
         this.warehouse = warehouse;
     }
 
-    update(subject: Subject<Shape>, event: ShapeEvent): void {
+    update(event: ShapeEvent): void {
         const { shape, type } = event;
 
         if (type === ShapeEventType.DELETED) {

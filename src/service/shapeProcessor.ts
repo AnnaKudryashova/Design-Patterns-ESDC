@@ -1,6 +1,7 @@
 import { Point } from "../entity/point";
 import { Shape } from "../entity/shape";
-import { ShapeFactoryProvider } from "../factory/shapeFactoryProvider";
+import { RectangleFactory } from "../factory/rectangleFactory";
+import { SphereFactory } from "../factory/sphereFactory";
 import { ShapeRepository } from "../repository/shapeRepository";
 import { ExtendedMetrics, ShapeMetrics } from "../types";
 import { ValidatorProvider } from "../validator/validatorProvider";
@@ -9,7 +10,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 export class ShapeProcessor {
     constructor(
-      private factoryProvider = ShapeFactoryProvider.getInstance(),
       private validatorProvider = new ValidatorProvider(),
       private geometryService = new GeometryService(),
       private repository = ShapeRepository.getInstance()
@@ -35,7 +35,6 @@ export class ShapeProcessor {
     }
 
     private createShape(type: string, coords: any): Shape {
-      const factory = this.factoryProvider.getFactory(type);
       const id = uuidv4();
 
       if (type === 'rectangle') {
@@ -54,10 +53,10 @@ export class ShapeProcessor {
           throw new Error(`Rectangle requires exactly 4 points, got ${points.length}`);
         }
 
-        return factory.create(id, points);
+        return new RectangleFactory().create(id, points);
       }
 
-      return factory.create(id, coords);
+      return new SphereFactory().create(id, coords);
     }
 
     private calculateBasicMetrics(shape: Shape): ShapeMetrics {

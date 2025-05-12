@@ -5,7 +5,6 @@ import { ShapeManager } from "../service/shapeManager";
 import { CONFIG } from "../constants";
 import path from 'path';
 import { GeometryService } from "../service/geometry/geometryService";
-import { SpecificationFactory } from "../specification/specification";
 import { ShapeRepository } from "../repository/shapeRepository";
 import { Sphere } from "../entity/sphere";
 import { Warehouse } from "../warehouse/warehouse";
@@ -33,7 +32,6 @@ export class ShapeDemo {
         try {
             logger.info("=== Starting Shape Demo ===");
 
-            // Process shapes from file
             await this.processShapesFile();
 
             this.displayInitialStats();
@@ -169,11 +167,8 @@ export class ShapeDemo {
 
     private async showShapeModifications(): Promise<void> {
         logger.info("\n=== Shape Modifications ===");
-        const allShapes = this.repository.findAll();
-
-        // Find one rectangle and one sphere
-        const rectangle = allShapes.find((s: Shape) => s.type === 'rectangle');
-        const sphere = allShapes.find((s: Shape) => s.type === 'sphere');
+        const rectangle = this.repository.findByType('rectangle')[0];
+        const sphere = this.repository.findByType('sphere')[0];
 
         if (rectangle) {
             logger.info('\nRectangle modifications:');
@@ -193,7 +188,7 @@ export class ShapeDemo {
                 return new Point(p.x, p.y, p.z);
             });
 
-            this.shapeManager.updateShape(rectangle.id, newPoints);
+            this.repository.updateShape(rectangle.id, newPoints);
 
             const updatedMetrics = this.warehouse.get(rectangle.id);
             logger.info('Updated metrics:');
@@ -204,7 +199,7 @@ export class ShapeDemo {
             }
 
             // Revert changes
-            this.shapeManager.updateShape(rectangle.id, rectangle.points);
+            this.repository.updateShape(rectangle.id, rectangle.points);
         }
 
         if (sphere) {
@@ -217,7 +212,6 @@ export class ShapeDemo {
                 if (originalMetrics.volume) logger.info(`- Volume: ${originalMetrics.volume.toFixed(2)}`);
             }
 
-            // Modify sphere by moving its center and increasing radius
             const sphereShape = sphere as Sphere;
             const newCenter = new Point(
                 sphereShape.center.x + 5,
@@ -227,7 +221,7 @@ export class ShapeDemo {
 
             // Create new points array with the new center
             const newPoints = [newCenter];
-            this.shapeManager.updateShape(sphere.id, newPoints);
+            this.repository.updateShape(sphere.id, newPoints);
 
             const updatedMetrics = this.warehouse.get(sphere.id);
             logger.info('Updated metrics:');
@@ -238,7 +232,7 @@ export class ShapeDemo {
             }
 
             // Revert changes
-            this.shapeManager.updateShape(sphere.id, [sphereShape.center]);
+            this.repository.updateShape(sphere.id, [sphereShape.center]);
         }
     }
 

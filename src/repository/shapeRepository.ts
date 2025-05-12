@@ -7,6 +7,7 @@ import { Warehouse } from "../warehouse/warehouse";
 import { Observer, ShapeObserver, ShapeObservable, ShapeEventType } from "../observer/shapeObserver";
 import { Specification, SortSpecification } from "../specification/specification";
 import { RectangleFactory } from "../factory/rectangleFactory";
+import { SphereFactory } from "../factory/sphereFactory";
 
 export class ShapeRepository {
     private static instance: ShapeRepository;
@@ -16,6 +17,7 @@ export class ShapeRepository {
     private observable: ShapeObservable;
     private shapeObserver: ShapeObserver;
     private rectangleFactory: RectangleFactory;
+    private sphereFactory: SphereFactory;
 
     private constructor(
         warehouse: Warehouse = Warehouse.getInstance(),
@@ -27,6 +29,7 @@ export class ShapeRepository {
         this.shapeObserver = new ShapeObserver(geometryService, warehouse);
         this.observable.attach(this.shapeObserver);
         this.rectangleFactory = new RectangleFactory();
+        this.sphereFactory = new SphereFactory();
         logger.info("ShapeRepository instance created with observer attached.");
     }
 
@@ -35,10 +38,6 @@ export class ShapeRepository {
             ShapeRepository.instance = new ShapeRepository();
         }
         return ShapeRepository.instance;
-    }
-
-    public getWarehouse(): Warehouse {
-        return this.warehouse;
     }
 
     add(shape: Shape): void {
@@ -56,16 +55,13 @@ export class ShapeRepository {
             throw new Error(`Shape with id ${id} not found`);
         }
 
-        const previousState = { ...shape, points: [...shape.points], type: shape.type };
-
         if (shape.type === 'sphere') {
             const sphere = shape as Sphere;
             const newCenter = points[0];
-            const newRadius = sphere.radius * 1.5; // Increase radius by 50%
+            const newRadius = sphere.radius * 1.5;
             const newSphere = new Sphere(id, newCenter, newRadius);
             this.shapes.set(id, newSphere);
         } else {
-            // For rectangles, use the factory to create a new instance
             const [p1, p2, p3, p4] = points;
             const newRectangle = this.rectangleFactory.create(id, [p1, p2, p3, p4]);
             this.shapes.set(id, newRectangle);
@@ -74,7 +70,6 @@ export class ShapeRepository {
         this.observable.notify({
             type: ShapeEventType.UPDATED,
             shape: this.shapes.get(id)!,
-            previousState
         });
         logger.info(`Shape ${id} updated in repository`);
     }
