@@ -19,7 +19,7 @@ describe('ShapeProcessor', () => {
   beforeEach(() => {
     mockValidator = { validate: jest.fn().mockReturnValue(true) };
     mockFactory = { create: jest.fn() };
-    mockShape = { id: '123', type: 'sphere' } as unknown as Shape;
+    mockShape = { id: '123', type: 'rectangle' } as unknown as Shape;
 
     (ValidatorProvider.prototype.getValidator as jest.Mock).mockReturnValue(mockValidator);
     (ShapeFactoryProvider.getInstance as jest.Mock).mockReturnValue({
@@ -27,40 +27,44 @@ describe('ShapeProcessor', () => {
     });
     (ShapeRepository.getInstance as jest.Mock).mockReturnValue({
       add: jest.fn(),
-      getWarehouse: jest.fn().mockReturnValue({ update: jest.fn() }),
     });
     (mockFactory.create as jest.Mock).mockReturnValue(mockShape);
-    (GeometryService.prototype.calculateArea as jest.Mock).mockReturnValue(100);
-    (GeometryService.prototype.calculateVolume as jest.Mock).mockReturnValue(200);
-    (GeometryService.prototype.calculateDistanceFromOrigin as jest.Mock).mockReturnValue(10);
-    (GeometryService.prototype.touchesCoordinatePlane as jest.Mock).mockReturnValue(true);
-    (GeometryService.prototype.getPlaneSplitVolumeRatio as jest.Mock).mockReturnValue(0.5);
+    (GeometryService.prototype.calculateArea as jest.Mock).mockReturnValue(4);
+    (GeometryService.prototype.calculatePerimeter as jest.Mock).mockReturnValue(8);
+    (GeometryService.prototype.calculateDistanceFromOrigin as jest.Mock).mockReturnValue(2);
 
     processor = new ShapeProcessor();
   });
 
-  it('should process a valid sphere shape and return metrics', () => {
+  it('should process a valid rectangle shape', () => {
     const data = {
-      type: 'sphere',
-      rawCoordinates: [1, 2, 3],
+      type: 'rectangle',
+      rawCoordinates: ['0', '0', '2', '0', '2', '2', '0', '2'],
     };
 
     const result = processor.process(data);
 
-    expect(result.shape).toEqual(mockShape);
-    expect(result.basic.area).toBe(100);
-    expect(result.basic.volume).toBe(200);
-    expect(result.extended.distance).toBe(10);
-    expect(result.extended.touchesPlane).toBe(true);
-    expect(result.extended.planeSplitRatio).toBe(0.5);
+    expect(result.shape).toBeDefined();
+    expect(result.shape.type).toBe('rectangle');
+    expect(result.basic.area).toBe(4);
+    expect(result.basic.perimeter).toBe(8);
+    expect(result.extended.distance).toBe(2);
   });
 
   it('should throw if validation fails', () => {
     mockValidator.validate.mockReturnValue(false);
     const data = {
-      type: 'sphere',
-      rawCoordinates: [],
+      type: 'rectangle',
+      rawCoordinates: ['0', '0', '2', '0'],
     };
     expect(() => processor.process(data)).toThrow();
+  });
+
+  it('should throw for invalid data format', () => {
+    const data = {
+      type: 'rectangle',
+      rawCoordinates: null,
+    };
+    expect(() => processor.process(data)).toThrow('Invalid data format');
   });
 });

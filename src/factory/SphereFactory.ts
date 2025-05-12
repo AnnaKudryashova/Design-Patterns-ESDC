@@ -11,8 +11,7 @@ export class SphereFactory implements ShapeFactory {
       throw new Error('Invalid sphere data');
     }
 
-    const [center, radius] = data;
-    const [x, y, z] = center.split(',').map(Number);
-    return new Sphere(id, new Point(x, y, z), Number(radius));
+    const [x, y, z, radius] = data.map(Number);
+    return new Sphere(id, new Point(x, y, z), radius);
   }
 }

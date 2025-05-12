@@ -30,20 +30,8 @@ export class RectangleGeometryService extends BaseGeometryService {
     return perimeter;
   }
 
-  isSquare(rectangle: Rectangle): boolean {
-    if (rectangle.points.length !== 4) return false;
-
-    const [p1, p2, p3] = rectangle.points;
-    const side1 = this.distance(p1, p2);
-    const side2 = this.distance(p2, p3);
-
-    return Math.abs(side1 - side2) < Number.EPSILON;
-  }
-
-  isRhombus(rectangle: Rectangle): boolean {
-    if (rectangle.points.length !== 4) return false;
-
-    const [p1, p2, p3, p4] = rectangle.points;
+  private areSidesEqual(points: Point[]): boolean {
+    const [p1, p2, p3, p4] = points;
     const side1 = this.distance(p1, p2);
     const side2 = this.distance(p2, p3);
     const side3 = this.distance(p3, p4);
@@ -56,6 +44,63 @@ export class RectangleGeometryService extends BaseGeometryService {
     );
   }
 
+  private areOppositeSidesParallel(points: Point[]): boolean {
+    const [p1, p2, p3, p4] = points;
+    const slope1 = this.slope(p1, p2);
+    const slope2 = this.slope(p3, p4);
+    const slope3 = this.slope(p2, p3);
+    const slope4 = this.slope(p4, p1);
+
+    return (
+      this.slopesEqual(slope1, slope2) &&
+      this.slopesEqual(slope3, slope4)
+    );
+  }
+
+  private areAdjacentSidesPerpendicular(points: Point[]): boolean {
+    const [p1, p2, p3, p4] = points;
+    const slope1 = this.slope(p1, p2);
+    const slope2 = this.slope(p2, p3);
+    const slope3 = this.slope(p3, p4);
+    const slope4 = this.slope(p4, p1);
+
+    // Two lines are perpendicular if the product of their slopes is -1
+    return (
+      Math.abs(slope1 * slope2 + 1) < Number.EPSILON &&
+      Math.abs(slope2 * slope3 + 1) < Number.EPSILON &&
+      Math.abs(slope3 * slope4 + 1) < Number.EPSILON &&
+      Math.abs(slope4 * slope1 + 1) < Number.EPSILON
+    );
+  }
+
+  isSquare(rectangle: Rectangle): boolean {
+    if (rectangle.points.length !== 4) return false;
+
+    // A square must have:
+    // 1. All sides equal
+    // 2. All angles 90 degrees (adjacent sides perpendicular)
+    // 3. Opposite sides parallel
+    return (
+      this.areSidesEqual(rectangle.points) &&
+      this.areAdjacentSidesPerpendicular(rectangle.points) &&
+      this.areOppositeSidesParallel(rectangle.points)
+    );
+  }
+
+  isRhombus(rectangle: Rectangle): boolean {
+    if (rectangle.points.length !== 4) return false;
+
+    // A rhombus must have:
+    // 1. All sides equal
+    // 2. Opposite sides parallel
+    // 3. Adjacent sides NOT perpendicular (to distinguish from square)
+    return (
+      this.areSidesEqual(rectangle.points) &&
+      this.areOppositeSidesParallel(rectangle.points) &&
+      !this.areAdjacentSidesPerpendicular(rectangle.points)
+    );
+  }
+
   isTrapezoid(rectangle: Rectangle): boolean {
     if (rectangle.points.length !== 4) return false;
 
@@ -65,10 +110,15 @@ export class RectangleGeometryService extends BaseGeometryService {
     const slope3 = this.slope(p2, p3);
     const slope4 = this.slope(p4, p1);
 
-    return (
-      this.slopesEqual(slope1, slope2) ||
-      this.slopesEqual(slope3, slope4)
-    );
+    // A trapezoid must have:
+    // 1. Exactly one pair of parallel sides
+    // 2. Non-parallel sides must not be equal in length
+    const hasParallelSides = this.slopesEqual(slope1, slope2) || this.slopesEqual(slope3, slope4);
+    const nonParallelSidesEqual = 
+      (this.slopesEqual(slope1, slope2) && Math.abs(this.distance(p2, p3) - this.distance(p4, p1)) < Number.EPSILON) ||
+      (this.slopesEqual(slope3, slope4) && Math.abs(this.distance(p1, p2) - this.distance(p3, p4)) < Number.EPSILON);
+
+    return hasParallelSides && !nonParallelSidesEqual;
   }
 
   areCollinear(p1: Point, p2: Point, p3: Point): boolean {

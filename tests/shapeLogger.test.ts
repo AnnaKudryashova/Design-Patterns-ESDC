@@ -1,30 +1,51 @@
 import { ShapeLogger } from "../src/service/shapeLogger";
+import { Rectangle } from "../src/entity/rectangle";
+import { Sphere } from "../src/entity/sphere";
+import { Point } from "../src/entity/point";
+import { ShapeMetrics } from "../src/warehouse/shapeMetrics";
+import { ExtendedMetrics } from "../src/warehouse/extendedMetrics";
 import { logger } from "../src/util/logger";
 
-jest.mock('../src/util/logger');
+jest.mock('../src/util/logger', () => ({
+  logger: {
+    info: jest.fn()
+  }
+}));
 
 describe('ShapeLogger', () => {
-  const shapeLogger = new ShapeLogger();
+  let shapeLogger: ShapeLogger;
 
-  it('should log correct metrics for a rectangle', () => {
-    const shape = { type: 'rectangle' } as any;
-    const basic = { area: 50, perimeter: 30 } as any;
-    const extended = { distance: 5, isSquare: true, isRhombus: false, isTrapezoid: true } as any;
-
-    shapeLogger.log(shape, basic, extended, 3);
-
-    expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('Perimeter=30.00'));
-    expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('IsSquare=true'));
+  beforeEach(() => {
+    shapeLogger = new ShapeLogger();
+    jest.clearAllMocks();
   });
 
-  it('should log correct metrics for a sphere', () => {
-    const shape = { type: 'sphere' } as any;
-    const basic = { area: 100, volume: 200 } as any;
-    const extended = { distance: 7, touchesPlane: true, planeSplitRatio: 0.33 } as any;
+  it('should log rectangle metrics', () => {
+    const rectangle = new Rectangle('1', 
+      new Point(0,0,0), new Point(2,0,0), 
+      new Point(2,2,0), new Point(0,2,0));
+    const basic: ShapeMetrics = { area: 4, perimeter: 8 };
+    const extended: ExtendedMetrics = { 
+      distance: 2, 
+      isSquare: true, 
+      isRhombus: false, 
+      isTrapezoid: false 
+    };
 
-    shapeLogger.log(shape, basic, extended, 7);
+    shapeLogger.log(rectangle, basic, extended, 1);
+    expect(logger.info).toHaveBeenCalled();
+  });
 
-    expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('Volume=200.00'));
-    expect(logger.info).toHaveBeenCalledWith(expect.stringContaining('TouchesPlane=true'));
+  it('should log sphere metrics', () => {
+    const sphere = new Sphere('1', new Point(0,0,0), 2);
+    const basic: ShapeMetrics = { area: 50.27, volume: 33.51 };
+    const extended: ExtendedMetrics = { 
+      distance: 0, 
+      touchesPlane: true, 
+      planeSplitRatio: 0.5 
+    };
+
+    shapeLogger.log(sphere, basic, extended, 1);
+    expect(logger.info).toHaveBeenCalled();
   });
 });

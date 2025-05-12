@@ -4,10 +4,41 @@ import { RectangleValidator } from "../src/validator/rectangleValidator";
 jest.mock('../src/service/geometry/geometryHelper');
 
 describe('RectangleValidator', () => {
-  const validator = new RectangleValidator();
+  let validator: RectangleValidator;
 
   beforeEach(() => {
+    validator = new RectangleValidator();
     jest.clearAllMocks();
+    
+    // Mock GeometryHelper methods
+    (GeometryHelper.areAllNumbers as jest.Mock).mockReturnValue(true);
+    (GeometryHelper.arePointsEqual as jest.Mock).mockReturnValue(false);
+    (GeometryHelper.distance as jest.Mock).mockReturnValue(2);
+    (GeometryHelper.areEqual as jest.Mock).mockReturnValue(true);
+    (GeometryHelper.isRightAngle as jest.Mock).mockReturnValue(true);
+    (GeometryHelper.areCollinear as jest.Mock).mockReturnValue(false);
+  });
+
+  it('should validate correct rectangle coordinates', () => {
+    const coords = ['0', '0', '2', '0', '2', '2', '0', '2'];
+    expect(validator.validate(coords)).toBe(true);
+  });
+
+  it('should reject invalid number of coordinates', () => {
+    const coords = ['0', '0', '2', '0', '2', '2'];
+    expect(validator.validate(coords)).toBe(false);
+  });
+
+  it('should reject non-numeric coordinates', () => {
+    (GeometryHelper.areAllNumbers as jest.Mock).mockReturnValue(false);
+    const coords = ['0', '0', '2', '0', '2', '2', '0', 'abc'];
+    expect(validator.validate(coords)).toBe(false);
+  });
+
+  it('should reject duplicate points', () => {
+    (GeometryHelper.arePointsEqual as jest.Mock).mockReturnValue(true);
+    const coords = ['0', '0', '0', '0', '2', '2', '0', '2'];
+    expect(validator.validate(coords)).toBe(false);
   });
 
   it('should validate a correct rectangle', () => {

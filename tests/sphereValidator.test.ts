@@ -4,23 +4,32 @@ import { SphereValidator } from "../src/validator/sphereValidator";
 jest.mock('../src/service/geometry/geometryHelper');
 
 describe('SphereValidator', () => {
-  const validator = new SphereValidator();
+  let validator: SphereValidator;
 
-  it('should validate a correct sphere', () => {
+  beforeEach(() => {
+    validator = new SphereValidator();
+    jest.clearAllMocks();
     (GeometryHelper.areAllNumbers as jest.Mock).mockReturnValue(true);
-    const result = validator.validate(['1', '2', '3', '5']);
-    expect(result).toBe(true);
   });
 
-  it('should return false for negative radius', () => {
-    (GeometryHelper.areAllNumbers as jest.Mock).mockReturnValue(true);
-    const result = validator.validate(['1', '2', '3', '-5']);
-    expect(result).toBe(false);
+  it('should validate correct sphere coordinates', () => {
+    const coords = ['0', '0', '0', '2'];
+    expect(validator.validate(coords)).toBe(true);
   });
 
-  it('should return false for non-numeric input', () => {
+  it('should reject invalid number of coordinates', () => {
+    const coords = ['0', '0', '0'];
+    expect(validator.validate(coords)).toBe(false);
+  });
+
+  it('should reject non-numeric coordinates', () => {
     (GeometryHelper.areAllNumbers as jest.Mock).mockReturnValue(false);
-    const result = validator.validate(['1', 'x', '3', '5']);
-    expect(result).toBe(false);
+    const coords = ['0', '0', '0', 'abc'];
+    expect(validator.validate(coords)).toBe(false);
+  });
+
+  it('should reject negative radius', () => {
+    const coords = ['0', '0', '0', '-2'];
+    expect(validator.validate(coords)).toBe(false);
   });
 });

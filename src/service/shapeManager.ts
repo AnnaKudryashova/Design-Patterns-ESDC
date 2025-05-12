@@ -1,39 +1,35 @@
 import { Shape } from "../entity/shape";
+import { Point } from "../entity/point";
+import { Sphere } from "../entity/sphere";
 import { ShapeRepository } from "../repository/shapeRepository";
 import { SpecificationFactory } from "../specification/specification";
 import { logger } from "../util/logger";
-import { DataReader } from "./dataReader";
+import { DataReader, IDataReader } from "./dataReader";
 import { GeometryService } from "./geometry/geometryService";
 import { ShapeLogger } from "./shapeLogger";
 import { ShapeProcessor } from "./shapeProcessor";
-import fs from 'fs';
-import path from 'path';
+import { CONFIG, ERROR_MESSAGES, SHAPE_TYPES } from "../constants";
+import { ProcessingResult, IShapeManager, IShapeProcessor, IShapeLogger } from "../types";
+import { ShapeNotFoundError, InvalidShapeTypeError } from "../exception/shapeExceptions";
+import { CustomException } from "../exception/customException";
+import { ShapeMetrics } from "../warehouse/shapeMetrics";
 
-export class ShapeManager {
-  private readonly processor: ShapeProcessor;
-  private readonly loggerService: ShapeLogger;
-  private readonly repository: ShapeRepository;
-  private readonly geometryService: GeometryService;
-
+export class ShapeManager implements IShapeManager {
   constructor(
-    processor = new ShapeProcessor(),
-    loggerService = new ShapeLogger(),
-    repository = ShapeRepository.getInstance(),
-    geometryService = new GeometryService()
-  ) {
-    this.processor = processor;
-    this.loggerService = loggerService;
-    this.repository = repository;
-    this.geometryService = geometryService;
-  }
+    private readonly processor: IShapeProcessor = new ShapeProcessor(),
+    private readonly loggerService: IShapeLogger = new ShapeLogger(),
+    private readonly repository: ShapeRepository = ShapeRepository.getInstance(),
+    private readonly geometryService: GeometryService = new GeometryService()
+  ) {}
 
-  async processFile(filePath: string): Promise<{ success: number; errors: number }> {
-    const abs = this.validateAndResolvePath(filePath);
-    logger.info(`Processing file: ${abs}`);
+  async processFile(filePath: string): Promise<ProcessingResult> {
+    logger.info(`Processing file: ${filePath}`);
 
-    const results = { success: 0, errors: 0 };
+    const results: ProcessingResult = { success: 0, errors: 0 };
     try {
-      const shapesData = await DataReader.read(abs);
+      const dataReader = new DataReader(filePath);
+      const shapesData = await dataReader.read();
+      
       for (const data of shapesData) {
         try {
           const { shape, basic, extended } = this.processor.process(data);
@@ -49,15 +45,8 @@ export class ShapeManager {
       return results;
     } catch (error) {
       this.logError('File processing', error);
-      throw error;
+      throw new CustomException(ERROR_MESSAGES.PROCESSING_ERROR, error instanceof Error ? error : undefined);
     }
-  }
-
-  private validateAndResolvePath(filePath: string): string {
-    if (!fs.existsSync(filePath)) {
-      throw new Error(`File not found: ${filePath}`);
-    }
-    return path.resolve(filePath);
   }
 
   private logError(context: string | number, error: unknown): void {
@@ -72,12 +61,18 @@ export class ShapeManager {
   }
 
   findShapesInAreaRange(min: number, max: number): Shape[] {
+    if (min > max) {
+      throw new CustomException('Minimum area cannot be greater than maximum area');
+    }
     return this.repository.findBySpecification(
       SpecificationFactory.byAreaRange(min, max, this.geometryService)
     );
   }
 
   findShapesNearOrigin(maxDistance: number): Shape[] {
+    if (maxDistance < 0) {
+      throw new CustomException('Maximum distance cannot be negative');
+    }
     return this.repository.findBySpecification(
       SpecificationFactory.byDistanceFromOrigin(maxDistance, this.geometryService)
     );
@@ -89,9 +84,40 @@ export class ShapeManager {
     );
   }
 
-  sortByY(): Shape[] {
-    return this.repository.sortBySpecification(
-      SpecificationFactory.sortByY(this.geometryService)
-    );
+  findByType(type: string): Shape[] {
+    if (!Object.values(SHAPE_TYPES).includes(type as any)) {
+      throw new InvalidShapeTypeError(type);
+    }
+    return this.repository.findByType(type);
+  }
+
+  updateShape(id: string, points: Point[]): void {
+    const shape = this.repository.get(id);
+    if (!shape) {
+      throw new ShapeNotFoundError(id);
+    }
+
+    if (shape.type === 'sphere') {
+      // For spheres, we need to update both center and radius
+      const sphere = shape as Sphere;
+      const newCenter = points[0];
+      const newRadius = sphere.radius * 1.5; // Increase radius by 50%
+      this.repository.updateShape(id, [newCenter]);
+    } else {
+      // For rectangles, just update the points
+      this.repository.updateShape(id, points);
+    }
+  }
+
+  getShapeMetrics(id: string): ShapeMetrics {
+    const shape = this.repository.get(id);
+    if (!shape) {
+      throw new ShapeNotFoundError(id);
+    }
+    return {
+      area: this.geometryService.calculateArea(shape),
+      perimeter: shape.type === 'rectangle' ? this.geometryService.calculatePerimeter(shape) : undefined,
+      volume: shape.type === 'sphere' ? this.geometryService.calculateVolume(shape) : undefined
+    };
   }
 }
